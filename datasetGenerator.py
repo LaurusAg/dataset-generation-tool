@@ -3,6 +3,9 @@
 # TODO:
 # 
 
+# BUG:
+# _Can't erase local datase folder when deleting dataset.
+
 # Dependencies: 
 # pip install pysmb
 # pip install opencv
@@ -200,6 +203,7 @@ while True:
     if key == ord('q') or key == 113:
         break
 
+cv2.destroyAllWindows()
 if not flag:
     print("Exiting...")
     os._exit(0)
@@ -211,11 +215,10 @@ if resp is None or resp == "N" or resp == "n":
     print("Exiting...")
     os._exit(0)
 
-print("Copying generated dataset to server:")
+print("Copying generated dataset to server...")
 from smb.SMBConnection import SMBConnection
 
 servers_list = [
-    {"ip": "192.168.54.238" , "hostname": "LAPTOP-39T1KM86"},
     {"ip": "192.168.195.158", "hostname": "PCFEDE" },
 ]
 
@@ -224,7 +227,7 @@ server = None
 for srv in servers_list:
     try:
         conn = SMBConnection("fran6ko", "dummy", "dummy", srv["hostname"], use_ntlm_v2 = True)
-        conn.connect(srv["ip"], port=139)
+        conn.connect(srv["ip"], port=139, timeout=5)
         server = srv
     except Exception as e:
         conn = None
