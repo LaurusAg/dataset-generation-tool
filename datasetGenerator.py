@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-# TODO:
-# 
-
 # BUG:
 # _Can't erase local datase folder when deleting dataset.
 
@@ -112,6 +109,7 @@ if will_calibrate:
         polyPts[:,0] += int(width/2)
         polyPts[:,1] += int(height/2)
         polyPts = polyPts.reshape((-1, 1, 2))
+        selected_idx = -1
 
         cp = numpy_img.copy()
         cv2.polylines(cp, [polyPts], True, (0,200,0), 2)
@@ -121,15 +119,22 @@ if will_calibrate:
             return np.sqrt((pointA[0]-pointB[0])**2 + (pointA[1]-pointB[1])**2) 
 
         def adjustPerspectivePolygon(event, x, y, flags, param):
+            global selected_idx, polyPts
             if event == cv2.EVENT_LBUTTONDOWN:
                 distances = []
                 for point in polyPts:
                     distances.append(points_distance((x,y), point[0]))
-                idx = np.argmin(distances)
-                polyPts[idx][0] = [x,y]
-                cp = numpy_img.copy()
-                cv2.polylines(cp, [polyPts], True, (0,200,0), 2)
-                cv2.imshow("Calibration", cp)
+                selected_idx = np.argmin(distances)
+
+            if event == cv2.EVENT_MOUSEMOVE:
+                if selected_idx != -1:
+                    polyPts[selected_idx][0] = [x,y]
+                    cp = numpy_img.copy()
+                    cv2.polylines(cp, [polyPts], True, (0,200,0), 2)
+                    cv2.imshow("Calibration", cp)
+
+            if event == cv2.EVENT_LBUTTONUP:
+                selected_idx = -1
             
         cv2.setMouseCallback("Calibration", adjustPerspectivePolygon)
         cv2.waitKey(0)
