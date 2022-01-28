@@ -30,7 +30,7 @@ capture.set(cv2.CAP_PROP_FRAME_HEIGHT, 10000)
 
 # Check for calibration file
 will_calibrate = False
-calib_file_path = "./calibration_data.pkl"
+calib_file_path = os.path.join(dirname, 'calibration_data.pkl')
 cd = {}
 if os.path.exists(calib_file_path):
     resp = input("Calibration file found. Do you want to load it ? (Y/n): ")
@@ -140,8 +140,8 @@ if will_calibrate:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-        cd['originalWidth'] = int(input("Enter original horizontal dimention in mm: "))
-        cd['originalHeight'] = int(input("Enter original vertical dimention in mm: "))
+        cd['originalWidth'] = int(input("Enter original horizontal dimention in mm (353mm): "))
+        cd['originalHeight'] = int(input("Enter original vertical dimention in mm (300mm): "))
         if cd['originalHeight'] == 0 or cd['originalWidth'] == 0: os._exit(0)
 
         polyPts = polyPts.reshape(4,2)
@@ -188,7 +188,7 @@ print(" - Press the space bar or enter to capture")
 print(" - Press Q or escape to exit")
 cv2.namedWindow("OpenCV Camera")
 cv2.setWindowProperty("OpenCV Camera", cv2.WND_PROP_TOPMOST, 1)
-cv2.displayOverlay("OpenCV Camera", "Rotate image using arrows if needed, otherwise hit enter...", 0)
+cv2.displayOverlay("OpenCV Camera", "Press the space bar or enter to capture", 0)
 
 flag = False
 while True:
