@@ -224,8 +224,8 @@ print("Copying generated dataset to server...")
 from smb.SMBConnection import SMBConnection
 
 servers_list = [
-    {"ip": "192.168.0.18", "hostname": "PCFEDE" },
-    {"ip": "192.168.195.158", "hostname": "PCFEDE" },
+    {"ip": "192.168.0.18", "hostname": "PCFEDE" },  # hostname = name of the PC (not ZeroTier)
+    {"ip": "10.243.38.76", "hostname": "PCFEDE" },
 ]
 
 conn = None
