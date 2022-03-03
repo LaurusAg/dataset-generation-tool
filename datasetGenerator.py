@@ -14,6 +14,10 @@ import pickle
 import os
 import math
 
+servers_list = [
+    {"ip": "192.168.0.95", "hostname": "LAURUS-SERVER" }  # hostname = name of the PC (not ZeroTier)
+]
+
 dirname = os.path.dirname(__file__)
 path = os.path.join(dirname, 'generated_datasets/')
 from tkinter import Tk
@@ -140,8 +144,16 @@ if will_calibrate:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-        cd['originalWidth'] = int(input("Enter original horizontal dimention in mm (353mm): "))
-        cd['originalHeight'] = int(input("Enter original vertical dimention in mm (300mm): "))
+        try:
+            cd['originalWidth'] = int(input("Enter original horizontal dimention in mm (353mm): "))
+        except:
+            cd['originalWidth'] = 353
+
+        try:
+            cd['originalHeight'] = int(input("Enter original vertical dimention in mm (300mm): "))
+        except:
+            cd['originalHeight'] = 300
+
         if cd['originalHeight'] == 0 or cd['originalWidth'] == 0: os._exit(0)
 
         polyPts = polyPts.reshape(4,2)
@@ -223,16 +235,16 @@ if resp is None or resp == "N" or resp == "n":
 print("Copying generated dataset to server...")
 from smb.SMBConnection import SMBConnection
 
-servers_list = [
-    {"ip": "192.168.0.18", "hostname": "PCFEDE" },  # hostname = name of the PC (not ZeroTier)
-    {"ip": "10.243.38.76", "hostname": "PCFEDE" },
-]
-
 conn = None
 server = None
+srv_username = 'pi'
+srv_password = 'laurus2022'
+srv_shared_drive = 'LaurusServer-2TB'
+srv_path_to_store = 'AI/arugula-basil-datasets'   # The folder must already be created in the shared drive
+
 for srv in servers_list:
     try:
-        conn = SMBConnection("fran6ko", "dummy", "dummy", srv["hostname"], use_ntlm_v2 = True)
+        conn = SMBConnection(srv_username, srv_password, "dataset_gen", srv["hostname"], use_ntlm_v2 = True)
         conn.connect(srv["ip"], port=139, timeout=5)
         server = srv
     except Exception as e:
@@ -243,12 +255,15 @@ if conn is None:
     print("Couldn't find an online server. Dataset is saved locally.")
 else:
     print("Connected to", server["hostname"],"at", server["ip"])
-    
+    srv_folder_path = srv_path_to_store + '/' + dataset_name
     try:
-        conn.getAttributes("datasets", dataset_name)
+        conn.getAttributes(srv_shared_drive, srv_folder_path)
         print("Directory already exists. New images will be added to the existing dataset.")
     except Exception:
-        conn.createDirectory("datasets", dataset_name)
+        try:
+            conn.createDirectory(srv_shared_drive, srv_folder_path)
+        except:
+            print('Failed to create directory.')
 
     files = os.listdir(path)
     for i, file in enumerate(files):
@@ -256,7 +271,7 @@ else:
         if not os.path.isfile(os.path.join(path, file)):
             continue
         file2transfer = open(os.path.join(path, file),"rb")
-        conn.storeFile("datasets", "/" + dataset_name + "/" + file, file2transfer)
+        conn.storeFile(srv_shared_drive, srv_folder_path + "/" + file, file2transfer)
 
     print("Done.")
     print("")
